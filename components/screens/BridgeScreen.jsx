@@ -51,9 +51,9 @@ export default function BridgeScreen({ onReset }) {
                 {d.threat}
               </p>
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-                Prevent / Fix
+                Remedy
               </p>
-              <p className="text-xs text-gray-900 leading-snug">{d.prevent}</p>
+              <p className="text-xs text-gray-900 leading-snug">{d.remedy}</p>
             </div>
           ))}
         </div>
