@@ -5,13 +5,22 @@ import { SCARF_DOMAINS } from "@/lib/scenarios";
 
 export default function BridgeScreen({ onReset }) {
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState("idle"); // 'idle' | 'loading' | 'success' | 'error'
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: wire to Identitype Group's email tool (Mailchimp / ConvertKit / etc.) — placeholder for v1
-    console.log("Email captured (placeholder):", email);
-    setSubmitted(true);
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      setStatus(data.success ? "success" : "error");
+    } catch {
+      setStatus("error");
+    }
   };
 
   return (
@@ -69,27 +78,35 @@ export default function BridgeScreen({ onReset }) {
             prompts, and the behavior map used in this simulation.
           </p>
 
-          {!submitted ? (
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@work.email"
-                className="flex-1 border-2 border-gray-300 focus:border-black px-4 py-3 rounded-sm outline-none"
-              />
-              <button
-                type="submit"
-                className="bg-brand-orange hover:opacity-90 text-white font-bold px-8 py-3 rounded-sm tracking-wide transition-opacity"
-              >
-                Get the Field Kit
-              </button>
-            </form>
-          ) : (
+          {status === "success" ? (
             <p className="text-brand-green font-bold">
-              ✓ Thanks. Check your inbox in the next few minutes.
+              ✓ You're in. Check your inbox in the next few minutes.
             </p>
+          ) : (
+            <>
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@work.email"
+                  className="flex-1 border-2 border-gray-300 focus:border-black px-4 py-3 rounded-sm outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="bg-brand-orange hover:opacity-90 disabled:opacity-50 text-white font-bold px-8 py-3 rounded-sm tracking-wide transition-opacity"
+                >
+                  {status === "loading" ? "Submitting…" : "Get the Field Kit"}
+                </button>
+              </form>
+              {status === "error" && (
+                <p className="text-red-600 text-sm mt-2">
+                  Something went wrong — try again.
+                </p>
+              )}
+            </>
           )}
 
           <p className="text-xs text-gray-500 mt-4">
