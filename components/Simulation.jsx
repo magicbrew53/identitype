@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import { selectScenarios, selectProfile } from "@/lib/scenarios";
-import { EMPTY_COSTS, addCosts } from "@/lib/costs";
+import { EMPTY_COSTS, EMPTY_GAINS, addCosts, addGains } from "@/lib/costs";
 import LandingScreen from "@/components/screens/LandingScreen";
 import IdentityScreen from "@/components/screens/IdentityScreen";
 import SceneScreen from "@/components/screens/SceneScreen";
@@ -15,12 +15,14 @@ export default function Simulation() {
   const [scenes, setScenes] = useState([]);
   const [sceneIndex, setSceneIndex] = useState(0);
   const [costs, setCosts] = useState(EMPTY_COSTS);
+  const [gains, setGains] = useState(EMPTY_GAINS);
 
   const begin = useCallback(() => {
     setProfile(selectProfile());
     setScenes(selectScenarios());
     setSceneIndex(0);
     setCosts(EMPTY_COSTS);
+    setGains(EMPTY_GAINS);
     setScreen("identity");
   }, []);
 
@@ -28,7 +30,8 @@ export default function Simulation() {
 
   const handleChoice = useCallback(
     (choice) => {
-      setCosts((prev) => addCosts(prev, choice.costs));
+      setCosts((prev) => addCosts(prev, choice.costs || EMPTY_COSTS));
+      setGains((prev) => addGains(prev, choice.gains || EMPTY_GAINS));
     },
     []
   );
@@ -46,6 +49,7 @@ export default function Simulation() {
     setScenes(selectScenarios());
     setSceneIndex(0);
     setCosts(EMPTY_COSTS);
+    setGains(EMPTY_GAINS);
     setScreen("identity");
   }, []);
 
@@ -62,6 +66,7 @@ export default function Simulation() {
           sceneIndex={sceneIndex}
           totalScenes={scenes.length}
           costs={costs}
+          gains={gains}
           onChoice={handleChoice}
           onAdvance={advanceScene}
         />
@@ -72,6 +77,7 @@ export default function Simulation() {
       {screen === "report" && (
         <CostReportScreen
           costs={costs}
+          gains={gains}
           onContinue={() => setScreen("bridge")}
         />
       )}

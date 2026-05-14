@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import FadeIn from "@/components/ui/FadeIn";
 import DomainTag from "@/components/ui/DomainTag";
 import { SCARF_DOMAINS } from "@/lib/scenarios";
-import { addCosts, brainState } from "@/lib/costs";
+import { addCosts, addGains, brainState, EMPTY_COSTS, EMPTY_GAINS } from "@/lib/costs";
 
 export default function SceneScreen({
   scene,
   sceneIndex,
   totalScenes,
   costs,
+  gains = EMPTY_GAINS,
   onChoice,
   onAdvance,
 }) {
@@ -18,8 +19,9 @@ export default function SceneScreen({
   const domain = SCARF_DOMAINS[scene.domain];
 
   // brain state should reflect the choice once made
-  const liveCosts = selected ? addCosts(costs, selected.costs) : costs;
-  const brain = brainState(liveCosts);
+  const liveCosts = selected ? addCosts(costs, selected.costs || EMPTY_COSTS) : costs;
+  const liveGains = selected ? addGains(gains, selected.gains || EMPTY_GAINS) : gains;
+  const brain = brainState(liveCosts, liveGains);
 
   useEffect(() => {
     if (selected) {

@@ -3,12 +3,23 @@ import FadeIn from "@/components/ui/FadeIn";
 import CostBar from "@/components/ui/CostBar";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { SCARF_DOMAINS } from "@/lib/scenarios";
-import { toPercentages, annualCost, orgCost } from "@/lib/costs";
+import {
+  toPercentages,
+  toGainPercentages,
+  annualCost,
+  annualValue,
+  orgCost,
+  EMPTY_GAINS,
+} from "@/lib/costs";
 
-export default function CostReportScreen({ costs, onContinue }) {
-  const pcts = toPercentages(costs);
-  const annual = annualCost(pcts);
+export default function CostReportScreen({ costs, gains = EMPTY_GAINS, onContinue }) {
+  const threatPcts = toPercentages(costs);
+  const safetyPcts = toGainPercentages(gains);
+  const annual = annualCost(threatPcts);
+  const built = annualValue(safetyPcts);
   const org = orgCost(annual);
+
+  const domainOrder = ["STATUS", "CERTAINTY", "AUTONOMY", "RELATEDNESS", "FAIRNESS"];
 
   return (
     <div className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
@@ -17,60 +28,88 @@ export default function CostReportScreen({ costs, onContinue }) {
           Psychological Safety Cost Report
         </p>
         <h2 className="text-4xl md:text-5xl font-black mb-3 leading-tight">
-          Threat Profile
+          Your Tuesday, by the numbers
         </h2>
         <p className="text-base text-gray-600 mb-12">
           One employee · One Tuesday · Extrapolated across 12 months
         </p>
       </FadeIn>
 
-      <FadeIn delay={400}>
+      {/* THREAT PROFILE */}
+      <FadeIn delay={300}>
+        <div className="mb-3">
+          <p className="text-xs uppercase tracking-[0.25em] font-bold text-black mb-1">
+            Threat Profile
+          </p>
+          <p className="text-sm text-gray-600 mb-6">
+            What the environment cost you today — the drain when fight, flight, or freeze took over.
+          </p>
+        </div>
+        <div className="mb-12">
+          {domainOrder.map((key, i) => (
+            <CostBar
+              key={key}
+              label={SCARF_DOMAINS[key].name}
+              percent={threatPcts[key.toLowerCase()]}
+              color={SCARF_DOMAINS[key].color}
+              delay={500 + i * 200}
+            />
+          ))}
+        </div>
+      </FadeIn>
+
+      {/* SAFETY PROFILE */}
+      <FadeIn delay={1500}>
+        <div className="mb-3">
+          <p className="text-xs uppercase tracking-[0.25em] font-bold text-black mb-1">
+            Safety Profile
+          </p>
+          <p className="text-sm text-gray-600 mb-6">
+            What voice built back — the value you generated when you stayed regulated and spoke deliberately.
+          </p>
+        </div>
         <div className="mb-14">
-          <CostBar
-            label={SCARF_DOMAINS.STATUS.name}
-            percent={pcts.status}
-            color={SCARF_DOMAINS.STATUS.color}
-            delay={500}
-          />
-          <CostBar
-            label={SCARF_DOMAINS.CERTAINTY.name}
-            percent={pcts.certainty}
-            color={SCARF_DOMAINS.CERTAINTY.color}
-            delay={700}
-          />
-          <CostBar
-            label={SCARF_DOMAINS.AUTONOMY.name}
-            percent={pcts.autonomy}
-            color={SCARF_DOMAINS.AUTONOMY.color}
-            delay={900}
-          />
-          <CostBar
-            label={SCARF_DOMAINS.RELATEDNESS.name}
-            percent={pcts.relatedness}
-            color={SCARF_DOMAINS.RELATEDNESS.color}
-            delay={1100}
-          />
-          <CostBar
-            label={SCARF_DOMAINS.FAIRNESS.name}
-            percent={pcts.fairness}
-            color={SCARF_DOMAINS.FAIRNESS.color}
-            delay={1300}
-          />
+          {domainOrder.map((key, i) => (
+            <CostBar
+              key={key}
+              label={SCARF_DOMAINS[key].name}
+              percent={safetyPcts[key.toLowerCase()]}
+              color={SCARF_DOMAINS[key].color}
+              delay={1700 + i * 200}
+            />
+          ))}
         </div>
       </FadeIn>
 
-      <FadeIn delay={1600}>
-        <div className="border-2 border-black p-8 mb-6">
-          <p className="text-xs uppercase tracking-widest font-bold text-gray-500 mb-3">
-            Estimated annual cost per affected employee
-          </p>
-          <p className="text-5xl md:text-6xl font-black text-brand-orange">
-            <AnimatedNumber value={annual} prefix="$" />
-          </p>
+      {/* DUAL STAT BOXES */}
+      <FadeIn delay={2700}>
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <div className="border-2 border-black p-6">
+            <p className="text-xs uppercase tracking-widest font-bold text-gray-500 mb-3">
+              Annual cost per affected employee
+            </p>
+            <p className="text-4xl md:text-5xl font-black text-brand-orange">
+              <AnimatedNumber value={annual} prefix="$" />
+            </p>
+            <p className="text-xs text-gray-500 mt-3">
+              What the day cost — attrition risk, withheld ideas, missed signal.
+            </p>
+          </div>
+          <div className="border-2 border-black p-6">
+            <p className="text-xs uppercase tracking-widest font-bold text-gray-500 mb-3">
+              Annual value voice would have built
+            </p>
+            <p className="text-4xl md:text-5xl font-black text-black">
+              <AnimatedNumber value={built} prefix="$" />
+            </p>
+            <p className="text-xs text-gray-500 mt-3">
+              What regulated, deliberate speech adds — trust, retention, signal that lands.
+            </p>
+          </div>
         </div>
       </FadeIn>
 
-      <FadeIn delay={1900}>
+      <FadeIn delay={3000}>
         <div className="border border-gray-300 p-6 mb-10">
           <p className="text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
             200-person org · 30% experiencing safety threats
@@ -79,13 +118,12 @@ export default function CostReportScreen({ costs, onContinue }) {
             <AnimatedNumber value={org} prefix="$" duration={2400} />
           </p>
           <p className="text-xs text-gray-500 mt-3">
-            This doesn't show up in your engagement survey. It shows up in
-            attrition, missed deadlines, and the quiet ideas that never get raised.
+            This doesn't show up in your engagement survey. It shows up in attrition, missed deadlines, and the quiet ideas that never get raised.
           </p>
         </div>
       </FadeIn>
 
-      <FadeIn delay={2200}>
+      <FadeIn delay={3300}>
         <div className="text-center mt-8">
           <button
             onClick={onContinue}
